@@ -35,11 +35,15 @@ public class EmployeeController {
     }
 
     @GetMapping
-    public List<Employee> queryEmployeeByGender(@RequestParam String gender) {
+    public ResponseEntity<List<Employee>> queryEmployeeByGender(@RequestParam(required = false) String gender) {
+        if (gender == null || gender.isBlank()) {
+            return ResponseEntity.ok(employees);
+        }
         String formatGender = gender.toLowerCase(Locale.ROOT);
-        return employees.stream()
+        return ResponseEntity.ok(employees.stream()
                 .filter(e -> e.getGender() != null &&
-                        e.getGender().toLowerCase(Locale.ROOT).equals(formatGender))
-                .toList();
+                        e.getGender().toLowerCase(Locale.ROOT).equals(formatGender)).toList());
     }
+
+
 }

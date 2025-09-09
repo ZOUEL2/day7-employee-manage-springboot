@@ -86,4 +86,25 @@ class EmployeeTest {
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].name").value("Tom"));
     }
+
+    @Test
+    void should_list_all_employees() throws Exception {
+        mockMvc.perform(post("/employees")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(employeeJson("Tom", "Male", 18, 5000.0)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/employees")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(employeeJson("Lucy", "Female", 22, 7000.0)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/employees")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+
+    }
+
+
 }
