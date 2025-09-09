@@ -71,4 +71,19 @@ public class CompanyTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    public void should_list_companies_with_pagination( ) throws Exception {
+        for (int i = 1; i <= 5; i++) {
+            createCompany("Company" + i);
+        }
+
+        mockMvc.perform(get("/companies")
+                        .param("page", "2")
+                        .param("size", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].name").value("Company3"))
+                .andExpect(jsonPath("$[1].name").value("Company4"));
+    }
+
 }

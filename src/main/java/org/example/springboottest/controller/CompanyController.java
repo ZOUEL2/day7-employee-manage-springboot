@@ -28,17 +28,27 @@ public class CompanyController {
     }
 
     @GetMapping
-    public List<Company> listCompanies() {
-        return companies;
+    public ResponseEntity<List<Company>> listCompanies(@RequestParam(required = false) Integer page,
+                                       @RequestParam(required = false) Integer size) {
+        if (page == null && size == null && (page < 1 || size < 1)) {
+            return ResponseEntity.ok(List.of());
+        }
+        int fromIndex = (page - 1) * size;
+        if (fromIndex >= companies.size()) {
+            return  ResponseEntity.ok(List.of());
+        }
+        int toIndex = Math.min(fromIndex + size, companies.size());
+        return ResponseEntity.ok(companies.subList(fromIndex, toIndex));
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Company> getCompanyById(@PathVariable long id) {
         Optional<Company> company = companies.stream()
-            .filter(c -> c.getId() == id)
-            .findFirst();
+                .filter(c -> c.getId() == id)
+                .findFirst();
         return company.map(ResponseEntity::ok)
-                      .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 
