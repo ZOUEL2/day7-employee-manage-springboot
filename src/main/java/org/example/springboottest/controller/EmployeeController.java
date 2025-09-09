@@ -40,6 +40,10 @@ public class EmployeeController {
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
 
+        if (page != null && size != null && (page < 1 || size < 1)) {
+            return ResponseEntity.ok(List.of());
+        }
+
         List<Employee> filtered;
         if (gender == null || gender.isBlank()) {
             filtered = employees;
@@ -52,9 +56,6 @@ public class EmployeeController {
         }
 
         if (page != null && size != null) {
-            if (page < 1 || size < 1) {
-                return ResponseEntity.ok(List.of()); // Invalid page or size, return empty list
-            }
             int fromIndex = (page - 1) * size;
             if (fromIndex >= filtered.size()) {
                 return ResponseEntity.ok(List.of());
