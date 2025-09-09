@@ -29,13 +29,16 @@ public class CompanyController {
 
     @GetMapping
     public ResponseEntity<List<Company>> listCompanies(@RequestParam(required = false) Integer page,
-                                       @RequestParam(required = false) Integer size) {
-        if (page == null && size == null && (page < 1 || size < 1)) {
+                                                       @RequestParam(required = false) Integer size) {
+        if (page != null && size != null && (page < 1 || size < 1)) {
             return ResponseEntity.ok(List.of());
+        }
+        if (page == null || size == null) {
+            return ResponseEntity.ok(companies);
         }
         int fromIndex = (page - 1) * size;
         if (fromIndex >= companies.size()) {
-            return  ResponseEntity.ok(List.of());
+            return ResponseEntity.ok(List.of());
         }
         int toIndex = Math.min(fromIndex + size, companies.size());
         return ResponseEntity.ok(companies.subList(fromIndex, toIndex));
@@ -49,6 +52,18 @@ public class CompanyController {
                 .findFirst();
         return company.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // update company name by id
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updateCompanyName(@PathVariable long id, @RequestBody Company updatedCompany) {
+        for (Company company : companies) {
+            if (company.getId() == id) {
+                company.setName(updatedCompany.getName());
+                return ResponseEntity.noContent().build();
+            }
+        }
+        return ResponseEntity.notFound().build();
     }
 
 

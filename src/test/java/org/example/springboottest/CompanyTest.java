@@ -86,4 +86,23 @@ public class CompanyTest {
                 .andExpect(jsonPath("$[1].name").value("Company4"));
     }
 
+    @Test
+    void should_update_company_name_when_put_given_a_valid_body() throws Exception {
+        long id = createCompany("OldName");
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/companies/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"NewName"
+                                }
+                                """))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/companies/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("NewName"));
+    }
+
+
 }
