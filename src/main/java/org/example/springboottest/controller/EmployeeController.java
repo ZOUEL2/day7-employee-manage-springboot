@@ -59,4 +59,11 @@ public class EmployeeController {
                 })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteEmployee(@PathVariable long id) {
+        boolean removed = employees.removeIf(e -> e.getId() == id);
+        return removed ? ResponseEntity.noContent().build() : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
 }

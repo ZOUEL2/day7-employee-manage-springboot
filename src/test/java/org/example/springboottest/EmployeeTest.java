@@ -10,6 +10,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -119,6 +120,24 @@ class EmployeeTest {
         mockMvc.perform(put("/employees/{id}", 999)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updateBody))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void should_delete_employee_when_delete_given_existing_id() throws Exception {
+        long id = createEmployee("Tom", "Male", 18, 5000.0);
+
+        mockMvc.perform(delete("/employees/{id}", id))
+                .andExpect(status().isNoContent());
+
+        // 再次查询应为 404
+        mockMvc.perform(get("/employees/{id}", id))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void should_return_404_when_delete_given_not_exist_id() throws Exception {
+        mockMvc.perform(delete("/employees/{id}", 999))
                 .andExpect(status().isNotFound());
     }
 
