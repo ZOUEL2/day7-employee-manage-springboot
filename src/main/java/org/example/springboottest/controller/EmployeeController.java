@@ -45,5 +45,18 @@ public class EmployeeController {
                         e.getGender().toLowerCase(Locale.ROOT).equals(formatGender)).toList());
     }
 
-
+    @PutMapping("/{id}")
+    public ResponseEntity<Object> updateEmployee(@PathVariable long id, @RequestBody Employee updatedEmployee) {
+        return employees.stream()
+                .filter(e -> e.getId() == id)
+                .findFirst()
+                .map(e -> {
+                    e.setName(updatedEmployee.getName());
+                    e.setAge(updatedEmployee.getAge());
+                    e.setGender(updatedEmployee.getGender());
+                    e.setSalary(updatedEmployee.getSalary());
+                    return ResponseEntity.noContent().build();
+                })
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
 }

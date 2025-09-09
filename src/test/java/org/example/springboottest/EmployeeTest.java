@@ -8,9 +8,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -34,28 +36,29 @@ class EmployeeTest {
                 """.formatted(name, gender, age, salary);
     }
 
+    private long createEmployee(String name, String gender, int age, double salary) throws Exception {
+        MvcResult result = mockMvc.perform(post("/employees")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(employeeJson(name, gender, age, salary)))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String content = result.getResponse().getContentAsString();
+        return Long.parseLong(content.replaceAll("\\D+", ""));
+    }
+
     @Test
     void should_create_employee_when_post_given_a_valid_body() throws Exception {
-        mockMvc.perform(post("/employees")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(employeeJson("Tom", "Male", 18, 5000.0))).andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1));
-
-        mockMvc.perform(post("/employees")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(employeeJson("Tom", "Male", 18, 5000.0))).andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(2));
+        long id1 = createEmployee("Tom", "Male", 18, 5000.0);
+        long id2 = createEmployee("Tom", "Male", 18, 5000.0);
+        // 简单断言顺序生成
+        assert id1 == 1;
+        assert id2 == 2;
     }
 
     @Test
     void should_find_employee_when_given_id() throws Exception {
-        mockMvc.perform(post("/employees")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(employeeJson("Tom", "Male", 18, 5000.0)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1));
-
-        mockMvc.perform(get("/employees/{id}", 1))
+        long id = createEmployee("Tom", "Male", 18, 5000.0);
+        mockMvc.perform(get("/employees/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Tom"))
                 .andExpect(jsonPath("$.age").value(18))
@@ -71,15 +74,8 @@ class EmployeeTest {
 
     @Test
     void should_query_employees_by_gender() throws Exception {
-        mockMvc.perform(post("/employees")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(employeeJson("Tom", "Male", 18, 5000.0)))
-                .andExpect(status().isCreated());
-
-        mockMvc.perform(post("/employees")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(employeeJson("Lucy", "Female", 22, 7000.0)))
-                .andExpect(status().isCreated());
+        createEmployee("Tom", "Male", 18, 5000.0);
+        createEmployee("Lucy", "Female", 22, 7000.0);
 
         mockMvc.perform(get("/employees").param("gender", "male"))
                 .andExpect(status().isOk())
@@ -89,22 +85,41 @@ class EmployeeTest {
 
     @Test
     void should_list_all_employees() throws Exception {
-        mockMvc.perform(post("/employees")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(employeeJson("Tom", "Male", 18, 5000.0)))
-                .andExpect(status().isCreated());
+        createEmployee("Tom", "Male", 18, 5000.0);
+        createEmployee("Lucy", "Female", 22, 7000.0);
 
-        mockMvc.perform(post("/employees")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(employeeJson("Lucy", "Female", 22, 7000.0)))
-                .andExpect(status().isCreated());
-
-        mockMvc.perform(get("/employees")
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/employees"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
-
     }
 
+    @Test
+    void should_update_employee_when_put_given_existing_id() throws Exception {
+        long id = createEmployee("Tom", "Male", 18, 5000.0);
+        String updateBody = employeeJson("TomUpdated", "Male", 19, 8000.0);
+
+        mockMvc.perform(put("/employees/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updateBody))
+                .andExpect(status().isNoContent());
+
+        // 再次查询确认更新
+        mockMvc.perform(get("/employees/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.name").value("TomUpdated"))
+                .andExpect(jsonPath("$.age").value(19))
+                .andExpect(jsonPath("$.salary").value(8000.0));
+    }
+
+    @Test
+    void should_return_404_when_put_given_not_exist_id() throws Exception {
+        String updateBody = employeeJson("Ghost", "Male", 30, 10000.0);
+
+        mockMvc.perform(put("/employees/{id}", 999)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updateBody))
+                .andExpect(status().isNotFound());
+    }
 
 }
