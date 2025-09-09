@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 @RestController
@@ -29,6 +30,15 @@ public class CompanyController {
     @GetMapping
     public List<Company> listCompanies() {
         return companies;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Company> getCompanyById(@PathVariable long id) {
+        Optional<Company> company = companies.stream()
+            .filter(c -> c.getId() == id)
+            .findFirst();
+        return company.map(ResponseEntity::ok)
+                      .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 

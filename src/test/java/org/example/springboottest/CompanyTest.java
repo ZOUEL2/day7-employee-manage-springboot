@@ -55,4 +55,20 @@ public class CompanyTest {
                 .andExpect(jsonPath("$.length()").value(2));
     }
 
+    @Test
+    public void should_get_company_by_id_success() throws Exception {
+        createCompany("TestCompany");
+
+        mockMvc.perform(get("/companies/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("TestCompany"));
+    }
+
+    @Test
+    public void should_return_404_when_company_not_found() throws Exception {
+        mockMvc.perform(get("/companies/999"))
+                .andExpect(status().isNotFound());
+    }
+
 }
