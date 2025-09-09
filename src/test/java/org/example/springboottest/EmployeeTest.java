@@ -1,6 +1,7 @@
 package org.example.springboottest;
 
 import jakarta.annotation.Resource;
+import org.example.springboottest.po.Employee;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,14 +37,14 @@ class EmployeeTest {
     @Test
     void should_create_employee_when_post_given_a_valid_body() throws Exception {
         mockMvc.perform(post("/employees")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(employeeJson("Tom", "Male", 18, 5000.0))).andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value( 1));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(employeeJson("Tom", "Male", 18, 5000.0))).andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1));
 
         mockMvc.perform(post("/employees")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(employeeJson("Tom", "Male", 18, 5000.0))).andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value( 2));
+                .andExpect(jsonPath("$.id").value(2));
     }
 
     @Test
@@ -68,4 +69,21 @@ class EmployeeTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void should_query_employees_by_gender() throws Exception {
+        mockMvc.perform(post("/employees")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(employeeJson("Tom", "Male", 18, 5000.0)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/employees")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(employeeJson("Lucy", "Female", 22, 7000.0)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/employees").param("gender", "male"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].name").value("Tom"));
+    }
 }
