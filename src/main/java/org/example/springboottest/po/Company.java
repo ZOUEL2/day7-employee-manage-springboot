@@ -5,15 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class Employee {
-
+public class Company {
     private long id;
     private String name;
-    private int age;
-    private String gender;
-    private double salary;
-
-    public Employee() {
-    }
-
 }
