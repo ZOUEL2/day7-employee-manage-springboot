@@ -141,4 +141,37 @@ class EmployeeTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void should_page_query_employees_when_given_page_and_size() throws Exception {
+        createEmployee("E1", "Male", 20, 1000);
+        createEmployee("E2", "Male", 21, 1000);
+        createEmployee("E3", "Female", 22, 1000);
+        createEmployee("E4", "Male", 23, 1000);
+        createEmployee("E5", "Female", 24, 1000);
+        createEmployee("E6", "Male", 25, 1000);
+        createEmployee("E7", "Female", 26, 1000);
+
+        mockMvc.perform(get("/employees").param("page", "1").param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(5))
+                .andExpect(jsonPath("$[0].name").value("E1"))
+                .andExpect(jsonPath("$[4].name").value("E5"));
+
+        mockMvc.perform(get("/employees").param("page", "2").param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].name").value("E6"))
+                .andExpect(jsonPath("$[1].name").value("E7"));
+    }
+
+    @Test
+    void should_return_empty_list_when_page_out_of_range() throws Exception {
+        createEmployee("E1", "Male", 20, 1000);
+        createEmployee("E2", "Male", 21, 1000);
+
+        mockMvc.perform(get("/employees").param("page", "2").param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
 }

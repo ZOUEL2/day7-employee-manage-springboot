@@ -35,14 +35,35 @@ public class EmployeeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Employee>> queryEmployeeByGender(@RequestParam(required = false) String gender) {
+    public ResponseEntity<List<Employee>> queryEmployeeByGender(
+            @RequestParam(required = false) String gender,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+
+        List<Employee> filtered;
         if (gender == null || gender.isBlank()) {
-            return ResponseEntity.ok(employees);
+            filtered = employees;
+        } else {
+            String formatGender = gender.toLowerCase(Locale.ROOT);
+            filtered = employees.stream()
+                    .filter(e -> e.getGender() != null &&
+                            e.getGender().toLowerCase(Locale.ROOT).equals(formatGender))
+                    .toList();
         }
-        String formatGender = gender.toLowerCase(Locale.ROOT);
-        return ResponseEntity.ok(employees.stream()
-                .filter(e -> e.getGender() != null &&
-                        e.getGender().toLowerCase(Locale.ROOT).equals(formatGender)).toList());
+
+        if (page != null && size != null) {
+            if (page < 1 || size < 1) {
+                return ResponseEntity.ok(List.of()); // Invalid page or size, return empty list
+            }
+            int fromIndex = (page - 1) * size;
+            if (fromIndex >= filtered.size()) {
+                return ResponseEntity.ok(List.of());
+            }
+            int toIndex = Math.min(fromIndex + size, filtered.size());
+            return ResponseEntity.ok(filtered.subList(fromIndex, toIndex));
+        }
+
+        return ResponseEntity.ok(filtered);
     }
 
     @PutMapping("/{id}")
