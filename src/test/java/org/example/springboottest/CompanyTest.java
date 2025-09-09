@@ -104,5 +104,17 @@ public class CompanyTest {
                 .andExpect(jsonPath("$.name").value("NewName"));
     }
 
+    @Test
+    void should_delete_company_when_delete_given_existing_id() throws Exception {
+        long id = createCompany("ToBeDeleted");
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/companies/{id}", id))
+                .andExpect(status().isNoContent());
+
+        // 再次查询应为 404
+        mockMvc.perform(get("/companies/{id}", id))
+                .andExpect(status().isNotFound());
+    }
+
 
 }
