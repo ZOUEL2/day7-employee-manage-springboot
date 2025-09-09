@@ -45,4 +45,14 @@ public class CompanyTest {
         assert id2 == 2;
     }
 
+    @Test
+    void should_list_all_companies() throws Exception {
+        createCompany("alibaba");
+        createCompany("tencent");
+
+        mockMvc.perform(get("/companies"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+
 }

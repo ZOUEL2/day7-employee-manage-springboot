@@ -26,5 +26,10 @@ public class CompanyController {
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("id", company.getId()));
     }
 
+    @GetMapping
+    public List<Company> listCompanies() {
+        return companies;
+    }
+
 
 }
