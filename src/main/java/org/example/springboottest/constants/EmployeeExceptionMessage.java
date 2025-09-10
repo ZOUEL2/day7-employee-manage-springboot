@@ -8,5 +8,7 @@ public class EmployeeExceptionMessage {
 
     public static final String ILLEGAL_SALARY = "employee age over 30 should have salary at least 20000";
 
-    ;
+    public static final String EMPLOYEE_DUPLICATE = "employee is duplicate, need check name";
+
+
 }

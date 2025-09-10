@@ -4,6 +4,7 @@ import org.example.springboottest.exception.EmployeeIllegalAgeException;
 import org.example.springboottest.exception.EmployeeNotFoundException;
 import org.example.springboottest.exception.EmployeeSalarySetException;
 import org.example.springboottest.exception.CompanyNotFoundException;
+import org.example.springboottest.exception.EmployeeDuplicateException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -21,6 +22,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EmployeeSalarySetException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleEmployeeSalarySetException(Exception e){
+        return e.getMessage();
+    }
+
+    @ExceptionHandler(EmployeeDuplicateException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleEmployeeDuplicateException(Exception e){
         return e.getMessage();
     }
 

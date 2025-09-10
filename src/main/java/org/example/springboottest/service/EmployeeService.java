@@ -2,6 +2,7 @@ package org.example.springboottest.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.springboottest.constants.EmployeeExceptionMessage;
+import org.example.springboottest.exception.EmployeeDuplicateException;
 import org.example.springboottest.exception.EmployeeIllegalAgeException;
 import org.example.springboottest.exception.EmployeeNotFoundException;
 import org.example.springboottest.exception.EmployeeSalarySetException;
@@ -20,6 +21,15 @@ public class EmployeeService {
 
 
     public Map<String, Object> create(Employee employee) {
+        boolean duplicate = employeeRepository.listAll().stream()
+                .anyMatch(e -> e.isStatus()
+                        && e.getName() != null && e.getGender() != null
+                        && employee.getName() != null && employee.getGender() != null
+                        && e.getName().equalsIgnoreCase(employee.getName())
+                        && e.getGender().equalsIgnoreCase(employee.getGender()));
+        if (duplicate) {
+            throw new EmployeeDuplicateException(EmployeeExceptionMessage.EMPLOYEE_DUPLICATE);
+        }
         if (employee.getAge() < 18 || employee.getAge() > 65) {
             throw new EmployeeIllegalAgeException(EmployeeExceptionMessage.ILLEGAL_AGE);
         }

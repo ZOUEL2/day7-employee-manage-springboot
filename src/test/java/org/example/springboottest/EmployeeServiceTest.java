@@ -1,11 +1,13 @@
 package org.example.springboottest;
 
+import org.example.springboottest.exception.EmployeeDuplicateException;
 import org.example.springboottest.exception.EmployeeIllegalAgeException;
 import org.example.springboottest.exception.EmployeeNotFoundException;
 import org.example.springboottest.exception.EmployeeSalarySetException;
 import org.example.springboottest.po.Employee;
 import org.example.springboottest.repository.EmployeeRepository;
 import org.example.springboottest.service.EmployeeService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -13,6 +15,8 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -117,5 +121,19 @@ public class EmployeeServiceTest {
         verify(employeeRepository,times(1)).insert(employeeArgumentCaptor.capture());
         Employee value = employeeArgumentCaptor.getValue();
         assertTrue(value.isStatus());
+    }
+
+    @Test
+    public void should_throw_exception_when_create_employee_with_duplicate_name_and_gender() {
+        Employee existing = new Employee("Tom", 25, "Male", 30000);
+        existing.setId(1L);
+        existing.setStatus(true);
+
+        when(employeeRepository.listAll()).thenReturn(List.of(existing));
+
+        Employee duplicate = new Employee("Tom", 26, "Male", 40000);
+
+        assertThrows(EmployeeDuplicateException.class, () -> employeeService.create(duplicate));
+        verify(employeeRepository, never()).insert(any());
     }
 }
