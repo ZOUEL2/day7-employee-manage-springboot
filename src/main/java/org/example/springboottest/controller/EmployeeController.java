@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -20,16 +19,14 @@ public class EmployeeController {
     private final EmployeeService employeeService;
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, Object> createEmployee(@RequestBody Employee employee) {
-
-        return employeeService.create(employee);
+    public Map<String, Object>createEmployee(@RequestBody Employee employee) {
+            return employeeService.create(employee);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Employee> getEmployee(@PathVariable long id) {
 
-        Employee employee = employeeService.getEmployee(id);
+        Employee employee = employeeService.findById(id);
         if (Objects.isNull(employee)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

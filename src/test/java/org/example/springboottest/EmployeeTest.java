@@ -170,4 +170,14 @@ class EmployeeTest {
                 .andExpect(jsonPath("$.length()").value(0));
     }
 
+    @Test
+    void should_return_400_when_create_employee_age_over_30_and_salary_below_20000() throws Exception {
+
+        String createBody = employeeJson("TomUpdated", "Male", 39, 8000.0);
+
+         mockMvc.perform(post("/employees")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createBody)).andExpect(status().isBadRequest());
+    }
+
 }
