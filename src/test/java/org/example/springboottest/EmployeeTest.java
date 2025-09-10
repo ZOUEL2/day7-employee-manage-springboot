@@ -109,6 +109,20 @@ class EmployeeTest {
     }
 
     @Test
+    void should_return_404_when_put_given_inactive_employee() throws Exception {
+        long id = createEmployee("Tom", "Male", 18, 5000.0);
+
+        mockMvc.perform(delete("/employees/{id}", id))
+                .andExpect(status().isNoContent());
+
+        String updateBody = employeeJson("CannotUpdate", "Male", 20, 6000.0);
+        mockMvc.perform(put("/employees/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updateBody))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void should_return_404_when_put_given_not_exist_id() throws Exception {
         String updateBody = employeeJson("Ghost", "Male", 30, 10000.0);
 

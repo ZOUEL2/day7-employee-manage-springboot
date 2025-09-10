@@ -76,6 +76,18 @@ public class EmployeeServiceTest {
     }
 
     @Test
+    public void should_throw_exception_when_update_employee_given_inactive_employee() {
+        Employee inactive = new Employee("Old",30,"Male",5000);
+        inactive.setId(200L);
+        inactive.setStatus(false);
+        when(employeeRepository.findById(200L)).thenReturn(inactive);
+
+        Employee updated = new Employee("NewName",31,"Male",6000);
+        assertThrows(EmployeeNotFoundException.class, () -> employeeService.update(200L, updated));
+        verify(employeeRepository, never()).update(anyLong(), any());
+    }
+
+    @Test
     public void should_throw_exception_when_delete_employee_given_not_exist_id() {
         when(employeeRepository.findById(999L)).thenReturn(null);
         assertThrows(EmployeeNotFoundException.class, () -> employeeService.removeById(999L));

@@ -56,9 +56,11 @@ public class EmployeeService {
 
 
     public void update(long id, Employee updatedEmployee) {
-        if (employeeRepository.update(id, updatedEmployee) == null) {
+        Employee existing = employeeRepository.findById(id);
+        if (existing == null || !existing.isStatus()) {
             throw new EmployeeNotFoundException(EmployeeExceptionMessage.EMPLOYEE_NOT_FOUND);
         }
+        employeeRepository.update(id, updatedEmployee);
     }
 
     public void removeById(long id) {
