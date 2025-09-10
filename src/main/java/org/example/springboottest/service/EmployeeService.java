@@ -1,6 +1,7 @@
 package org.example.springboottest.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.springboottest.constants.EmployeeExceptionMessage;
 import org.example.springboottest.exception.EmployeeIllegalAgeException;
 import org.example.springboottest.exception.EmployeeNotFoundException;
 import org.example.springboottest.exception.EmployeeSalarySetException;
@@ -20,10 +21,10 @@ public class EmployeeService {
 
     public Map<String, Object> create(Employee employee) {
         if (employee.getAge() < 18 || employee.getAge() > 65) {
-            throw new EmployeeIllegalAgeException("");
+            throw new EmployeeIllegalAgeException(EmployeeExceptionMessage.ILLEGAL_AGE);
         }
         if (employee.getAge() > 30 && employee.getSalary() < 20000.0) {
-            throw new EmployeeSalarySetException("");
+            throw new EmployeeSalarySetException(EmployeeExceptionMessage.ILLEGAL_SALARY);
         }
         employeeRepository.add(employee);
         return Map.of("id", employee.getId());
@@ -33,7 +34,7 @@ public class EmployeeService {
     public Employee findById(long id) {
         Employee employee = employeeRepository.findById(id);
         if (employee == null){
-            throw new EmployeeNotFoundException("");
+            throw new EmployeeNotFoundException(EmployeeExceptionMessage.EMPLOYEE_NOT_FOUND);
         }
         return employee;
     }
@@ -55,16 +56,15 @@ public class EmployeeService {
 
 
     public void update(long id, Employee updatedEmployee) {
-        // repository.update 返回 null 表示未找到
         if (employeeRepository.update(id, updatedEmployee) == null) {
-            throw new EmployeeNotFoundException("");
+            throw new EmployeeNotFoundException(EmployeeExceptionMessage.EMPLOYEE_NOT_FOUND);
         }
     }
 
     public void removeById(long id) {
         boolean removed = employeeRepository.remove(id);
         if (!removed) {
-            throw new EmployeeNotFoundException("");
+            throw new EmployeeNotFoundException(EmployeeExceptionMessage.EMPLOYEE_NOT_FOUND);
         }
     }
 }
