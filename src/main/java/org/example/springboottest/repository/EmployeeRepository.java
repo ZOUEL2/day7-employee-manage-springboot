@@ -42,10 +42,6 @@ public class EmployeeRepository {
                 .orElse(null);
     }
 
-    public boolean remove(long id) {
-        return employees.removeIf(e -> e.getId() == id);
-    }
-
     public List<Employee> listAll() {
         return employees;
     }

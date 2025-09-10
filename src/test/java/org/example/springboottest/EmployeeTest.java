@@ -126,7 +126,9 @@ class EmployeeTest {
                 .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/employees/{id}", id))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.status").value(false));
     }
 
     @Test

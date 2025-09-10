@@ -12,14 +12,15 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith(MockitoExtension.class)
 public class EmployeeServiceTest {
 
     @InjectMocks
@@ -76,8 +77,25 @@ public class EmployeeServiceTest {
 
     @Test
     public void should_throw_exception_when_delete_employee_given_not_exist_id() {
-        when(employeeRepository.remove(200L)).thenReturn(false);
-        assertThrows(EmployeeNotFoundException.class, () -> employeeService.removeById(200L));
+        when(employeeRepository.findById(999L)).thenReturn(null);
+        assertThrows(EmployeeNotFoundException.class, () -> employeeService.removeById(999L));
+        verify(employeeRepository, never()).update(anyLong(), any());
+    }
+
+    @Test
+    public void should_invoke_repository_remove_when_delete_employee_given_existing_id() {
+        Employee existing = new Employee("Jack", 25, "Male", 5000.0);
+        existing.setId(10L);
+        existing.setStatus(true);
+
+        when(employeeRepository.findById(10L)).thenReturn(existing);
+        when(employeeRepository.update(eq(10L), any(Employee.class)))
+                .thenAnswer(inv -> inv.getArgument(1));
+
+        employeeService.removeById(10L);
+
+        verify(employeeRepository).update(eq(10L), employeeArgumentCaptor.capture());
+        assertFalse(employeeArgumentCaptor.getValue().isStatus());
     }
 
     @Test

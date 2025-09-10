@@ -27,7 +27,7 @@ public class EmployeeService {
             throw new EmployeeSalarySetException(EmployeeExceptionMessage.ILLEGAL_SALARY);
         }
         employeeRepository.insert(employee);
-        return Map.of("id", employee.getId());
+        return Map.of("id", employee.getId(), "status", employee.isStatus());
     }
 
 
@@ -62,9 +62,14 @@ public class EmployeeService {
     }
 
     public void removeById(long id) {
-        boolean removed = employeeRepository.remove(id);
-        if (!removed) {
+        Employee employee = employeeRepository.findById(id);
+        if (employee == null ) {
             throw new EmployeeNotFoundException(EmployeeExceptionMessage.EMPLOYEE_NOT_FOUND);
         }
+        if (!employee.isStatus()) {
+            return;
+        }
+        employee.setStatus(false);
+        employeeRepository.update(id, employee);
     }
 }
