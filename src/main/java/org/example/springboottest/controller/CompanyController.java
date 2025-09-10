@@ -44,7 +44,6 @@ public class CompanyController {
         return ResponseEntity.ok(company);
     }
 
-    // update company name by id
     @PutMapping("/{id}")
     public ResponseEntity<Company> updateCompanyName(@PathVariable long id, @RequestBody Company updatedCompany) {
 

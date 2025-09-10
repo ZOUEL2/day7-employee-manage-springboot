@@ -1,26 +1,25 @@
 package org.example.springboottest.service;
 
+import lombok.RequiredArgsConstructor;
 import org.example.springboottest.po.Company;
-import org.springframework.http.ResponseEntity;
+import org.example.springboottest.repository.CompanyRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
+@RequiredArgsConstructor
 public class CompanyService {
 
     private final List<Company> companies = new ArrayList<>();
-    private final AtomicLong idGenerator = new AtomicLong(0);
+
+    private final CompanyRepository companyRepository;
 
     public Map<String, Object> create(Company company) {
-        long id = idGenerator.incrementAndGet();
-        company.setId(id);
-        companies.add(company);
-        return Map.of("id", company.getId());
+        return companyRepository.add(company);
     }
 
     public List<Company> list(Integer page, Integer size) {
@@ -28,14 +27,9 @@ public class CompanyService {
             return List.of();
         }
         if (page == null || size == null) {
-            return companies;
+            return CompanyRepository.listAll();
         }
-        int fromIndex = (page - 1) * size;
-        if (fromIndex >= companies.size()) {
-            return List.of();
-        }
-        int toIndex = Math.min(fromIndex + size, companies.size());
-        return companies.subList(fromIndex, toIndex);
+       return companyRepository.listPage(page,size);
     }
 
     public Company get(long id) {
@@ -46,16 +40,10 @@ public class CompanyService {
     }
 
     public Company update(long id, Company updatedCompany) {
-        for (Company company : companies) {
-            if (company.getId() == id) {
-                company.setName(updatedCompany.getName());
-                return company;
-            }
-        }
-        return null;
+        return companyRepository.updateById(id,updatedCompany);
     }
 
     public boolean delete(long id) {
-        return companies.removeIf(company -> company.getId() == id);
+        return companyRepository.removeById(id);
     }
 }
