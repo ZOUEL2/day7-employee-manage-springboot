@@ -8,11 +8,14 @@ import org.example.springboottest.repository.EmployeeRepository;
 import org.example.springboottest.service.EmployeeService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -24,6 +27,9 @@ public class EmployeeServiceTest {
 
     @Mock
     private EmployeeRepository employeeRepository;
+
+    @Captor
+    private ArgumentCaptor<Employee> employeeArgumentCaptor;
 
     @Test
     public void should_throw_exception_when_create_employee_given_age_below_18_or_over_65() {
@@ -41,7 +47,7 @@ public class EmployeeServiceTest {
 
         assertThrows(EmployeeIllegalAgeException.class, () -> employeeService.create(employee1));
         assertThrows(EmployeeIllegalAgeException.class, () -> employeeService.create(employee2));
-        verify(employeeRepository, never()).add(any());
+        verify(employeeRepository, never()).insert(any());
     }
 
     @Test
@@ -72,5 +78,14 @@ public class EmployeeServiceTest {
     public void should_throw_exception_when_delete_employee_given_not_exist_id() {
         when(employeeRepository.remove(200L)).thenReturn(false);
         assertThrows(EmployeeNotFoundException.class, () -> employeeService.removeById(200L));
+    }
+
+    @Test
+    void should_default_employee_status_true_when_create_given_valid_body(){
+        Employee employee = new Employee("Tom", 20,  "Male",800.0);
+        employeeService.create(employee);
+        verify(employeeRepository,times(1)).insert(employeeArgumentCaptor.capture());
+        Employee value = employeeArgumentCaptor.getValue();
+        assertTrue(value.isStatus());
     }
 }

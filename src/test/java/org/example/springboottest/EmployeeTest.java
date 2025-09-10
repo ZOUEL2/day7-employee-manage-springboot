@@ -38,6 +38,7 @@ class EmployeeTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(employeeJson(name, gender, age, salary)))
                 .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value(true))
                 .andReturn();
         String content = result.getResponse().getContentAsString();
         return Long.parseLong(content.replaceAll("\\D+", ""));

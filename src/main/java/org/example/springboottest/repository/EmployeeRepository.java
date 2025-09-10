@@ -16,7 +16,7 @@ public class EmployeeRepository {
 
     private final AtomicLong idGenerator = new AtomicLong(0);
 
-    public void add(Employee employee) {
+    public void insert(Employee employee) {
         long id = idGenerator.incrementAndGet();
         employee.setId(id);
         employees.add(employee);

@@ -26,7 +26,7 @@ public class EmployeeService {
         if (employee.getAge() > 30 && employee.getSalary() < 20000.0) {
             throw new EmployeeSalarySetException(EmployeeExceptionMessage.ILLEGAL_SALARY);
         }
-        employeeRepository.add(employee);
+        employeeRepository.insert(employee);
         return Map.of("id", employee.getId());
     }
 
