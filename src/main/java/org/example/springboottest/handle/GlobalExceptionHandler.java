@@ -3,6 +3,7 @@ package org.example.springboottest.handle;
 import org.example.springboottest.exception.EmployeeIllegalAgeException;
 import org.example.springboottest.exception.EmployeeNotFoundException;
 import org.example.springboottest.exception.EmployeeSalarySetException;
+import org.example.springboottest.exception.CompanyNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -23,9 +24,9 @@ public class GlobalExceptionHandler {
         return e.getMessage();
     }
 
-    @ExceptionHandler(EmployeeNotFoundException.class)
+    @ExceptionHandler({EmployeeNotFoundException.class, CompanyNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public void handleEmployeeNotFoundException(Exception e){
+    public void handleNotFound(Exception e){
     }
 
 

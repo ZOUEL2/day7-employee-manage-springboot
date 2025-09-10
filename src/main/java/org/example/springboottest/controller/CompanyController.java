@@ -7,21 +7,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.List;
 
 @RestController
 @RequestMapping("/companies")
 @RequiredArgsConstructor
 public class CompanyController {
 
-
     private final CompanyService companyService;
 
-
     @PostMapping
-    @ResponseStatus(HttpStatus.OK)
-    public Map<String, Object> createCompany(@RequestBody Company company) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public java.util.Map<String, Object> createCompany(@RequestBody Company company) {
         return companyService.create(company);
     }
 
@@ -32,37 +29,20 @@ public class CompanyController {
         return companyService.list(page, size);
     }
 
-
     @GetMapping("/{id}")
     public ResponseEntity<Company> getCompanyById(@PathVariable long id) {
-
-        Company company = companyService.get(id);
-
-        if (Objects.isNull(company)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        return ResponseEntity.ok(company);
+        return ResponseEntity.ok(companyService.get(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Company> updateCompanyName(@PathVariable long id, @RequestBody Company updatedCompany) {
-
-        Company company = companyService.update(id, updatedCompany);
-
-        if (Objects.isNull(company)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        return ResponseEntity.ok(company);
+    public ResponseEntity<Void> updateCompanyName(@PathVariable long id, @RequestBody Company updatedCompany) {
+        companyService.update(id, updatedCompany);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCompany(@PathVariable long id) {
-        boolean isRemoved = companyService.delete(id);
-        if (isRemoved) {
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        companyService.delete(id);
+        return ResponseEntity.noContent().build();
     }
-
 }
