@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/employees")
@@ -19,18 +18,14 @@ public class EmployeeController {
     private final EmployeeService employeeService;
 
     @PostMapping
-    public Map<String, Object>createEmployee(@RequestBody Employee employee) {
-            return employeeService.create(employee);
+    @ResponseStatus(HttpStatus.CREATED)
+    public Map<String, Object> createEmployee(@RequestBody Employee employee) {
+        return employeeService.create(employee);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Employee> getEmployee(@PathVariable long id) {
-
-        Employee employee = employeeService.findById(id);
-        if (Objects.isNull(employee)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        return ResponseEntity.ok(employee);
+        return ResponseEntity.ok(employeeService.findById(id));
     }
 
     @GetMapping
@@ -39,30 +34,18 @@ public class EmployeeController {
             @RequestParam(required = false) String gender,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
-
         return employeeService.queryList(gender, page, size);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Employee> updateEmployee(@PathVariable long id, @RequestBody Employee updatedEmployee) {
-
-        Employee employee = employeeService.update(id, updatedEmployee);
-
-        if (Objects.isNull(employee)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        return ResponseEntity.ok(employee);
+    public ResponseEntity<Void> updateEmployee(@PathVariable long id, @RequestBody Employee updatedEmployee) {
+        employeeService.update(id, updatedEmployee);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEmployee(@PathVariable long id) {
-        boolean isRemoved = employeeService.removeById(id);
-
-        if (isRemoved) {
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        employeeService.removeById(id);
+        return ResponseEntity.noContent().build();
     }
-
 }

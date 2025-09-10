@@ -36,12 +36,10 @@ public class EmployeeServiceTest {
         Employee employee2 = new Employee();
         employee2.setName("sgesagv");
         employee2.setGender("Male");
-        employee2.setAge(17);
+        employee2.setAge(67);
         employee2.setSalary(100.0);
 
-
         assertThrows(EmployeeIllegalAgeException.class, () -> employeeService.create(employee1));
-
         assertThrows(EmployeeIllegalAgeException.class, () -> employeeService.create(employee2));
         verify(employeeRepository, never()).add(any());
     }
@@ -62,5 +60,17 @@ public class EmployeeServiceTest {
         assertThrows(EmployeeSalarySetException.class, () -> employeeService.create(employee));
     }
 
+    @Test
+    public void should_throw_exception_when_update_employee_given_not_exist_id() {
+        Employee updated = new Employee();
+        updated.setName("New");
+        when(employeeRepository.update(100L, updated)).thenReturn(null);
+        assertThrows(EmployeeNotFoundException.class, () -> employeeService.update(100L, updated));
+    }
 
+    @Test
+    public void should_throw_exception_when_delete_employee_given_not_exist_id() {
+        when(employeeRepository.remove(200L)).thenReturn(false);
+        assertThrows(EmployeeNotFoundException.class, () -> employeeService.removeById(200L));
+    }
 }

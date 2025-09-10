@@ -60,13 +60,13 @@ public class EmployeeRepository {
                 .toList();
     }
 
-    public List<Employee> listPage(Integer page, Integer size) {
+    public List<Employee> paginate(List<Employee> source, int page, int size) {
         int fromIndex = (page - 1) * size;
-        if (fromIndex >= employees.size()) {
+        if (fromIndex >= source.size()) {
             return List.of();
         }
-        int toIndex = Math.min(fromIndex + size, employees.size());
-        return employees.subList(fromIndex, toIndex);
+        int toIndex = Math.min(fromIndex + size, source.size());
+        return source.subList(fromIndex, toIndex);
     }
 
 

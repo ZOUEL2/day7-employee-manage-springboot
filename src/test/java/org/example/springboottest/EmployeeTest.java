@@ -100,7 +100,6 @@ class EmployeeTest {
                         .content(updateBody))
                 .andExpect(status().isNoContent());
 
-        // 再次查询确认更新
         mockMvc.perform(get("/employees/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id))
@@ -126,7 +125,6 @@ class EmployeeTest {
         mockMvc.perform(delete("/employees/{id}", id))
                 .andExpect(status().isNoContent());
 
-        // 再次查询应为 404
         mockMvc.perform(get("/employees/{id}", id))
                 .andExpect(status().isNotFound());
     }

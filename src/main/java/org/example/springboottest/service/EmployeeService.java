@@ -8,7 +8,8 @@ import org.example.springboottest.po.Employee;
 import org.example.springboottest.repository.EmployeeRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -39,30 +40,31 @@ public class EmployeeService {
 
 
     public List<Employee> queryList(String gender, Integer page, Integer size) {
-        if (gender == null && (page == null && size == null)) {
-            return employeeRepository.listAll();
-        }
+        List<Employee> filtered = (gender == null)
+                ? employeeRepository.listAll()
+                : employeeRepository.listByGender(gender);
 
-        if (gender != null && (page == null && size == null)) {
-            return employeeRepository.listByGender(gender);
+        if (page == null || size == null) {
+            return filtered;
         }
-
-        if (gender == null && page != null && size != null) {
-            if (page < 1 || size < 1) {
-                return List.of();
-            }
-            return employeeRepository.listPage(page, size);
+        if (page < 1 || size < 1) {
+            return List.of();
         }
-        employeeRepository.listByGender(gender);
-        return employeeRepository.listPage(page, size);
+        return employeeRepository.paginate(filtered, page, size);
     }
 
 
-    public Employee update(long id, Employee updatedEmployee) {
-        return employeeRepository.update(id, updatedEmployee);
+    public void update(long id, Employee updatedEmployee) {
+        // repository.update 返回 null 表示未找到
+        if (employeeRepository.update(id, updatedEmployee) == null) {
+            throw new EmployeeNotFoundException("");
+        }
     }
 
-    public boolean removeById(long id) {
-        return employeeRepository.remove(id);
+    public void removeById(long id) {
+        boolean removed = employeeRepository.remove(id);
+        if (!removed) {
+            throw new EmployeeNotFoundException("");
+        }
     }
 }
