@@ -19,6 +19,9 @@ public class Employee {
     private double salary;
     private boolean activeStatus = true;
 
+    @Column(name = "company_id")
+    private long companyId;
+
     public Employee() {
     }
 

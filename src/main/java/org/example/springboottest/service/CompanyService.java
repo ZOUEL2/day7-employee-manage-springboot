@@ -4,6 +4,7 @@ import jakarta.annotation.Resource;
 import org.example.springboottest.exception.CompanyNotFoundException;
 import org.example.springboottest.po.Company;
 import org.example.springboottest.repository.CompanyRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,11 +13,13 @@ import java.util.Map;
 @Service
 public class CompanyService {
 
+    @Qualifier("companyRepositoryMemoryImpl")
     @Resource
     private CompanyRepository companyRepository;
 
     public Map<String, Object> create(Company company) {
-        return companyRepository.insert(company);
+        companyRepository.insert(company);
+        return Map.of("id", company.getId());
     }
 
     public Company get(long id) {
