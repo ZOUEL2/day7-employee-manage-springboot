@@ -1,11 +1,12 @@
 package org.example.springboottest;
 
 import jakarta.annotation.Resource;
+import org.example.springboottest.repository.CompanyRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -16,8 +17,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class CompanyTest {
+
+    @Resource
+    private CompanyRepository companyRepository;
+
+    @BeforeEach
+    void setUp() {
+        companyRepository.clear();
+    }
 
     @Resource
     private MockMvc mockMvc;
@@ -40,8 +48,8 @@ public class CompanyTest {
     void should_create_company_when_post_given_a_valid_body() throws Exception {
         long id1 = createCompany("alibaba");
         long id2 = createCompany("tencent");
-        assert id1 == 1;
-        assert id2 == 2;
+        assert id1 + 1 == id2;
+
     }
 
     @Test
@@ -71,7 +79,7 @@ public class CompanyTest {
     }
 
     @Test
-    public void should_list_companies_with_pagination( ) throws Exception {
+    public void should_list_companies_with_pagination() throws Exception {
         for (int i = 1; i <= 5; i++) {
             createCompany("Company" + i);
         }

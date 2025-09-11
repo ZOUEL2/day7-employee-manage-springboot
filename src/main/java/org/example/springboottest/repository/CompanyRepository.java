@@ -1,5 +1,6 @@
 package org.example.springboottest.repository;
 
+import org.example.springboottest.exception.CompanyNotFoundException;
 import org.example.springboottest.po.Company;
 import org.springframework.stereotype.Repository;
 
@@ -15,30 +16,36 @@ public class CompanyRepository {
 
     private final AtomicLong idGenerator = new AtomicLong(0);
 
-    public static List<Company> listAll() {
-        return companies;
-    }
-
-    public Map<String, Object> add(Company company) {
+    public Map<String, Object> insert(Company company) {
         long id = idGenerator.incrementAndGet();
         company.setId(id);
         companies.add(company);
         return Map.of("id", company.getId());
     }
 
+    public Company getById(long id){
+       return companies.stream()
+                .filter(c -> c.getId() == id)
+                .findFirst()
+               .orElse(null);
+    }
+
     public boolean removeById(long id) {
         return companies.removeIf(company -> company.getId() == id);
     }
 
-    public Company updateById(long id, Company updatedCompany) {
+    public void updateById(Company updatedCompany) {
         for (Company company : companies) {
-            if (company.getId() == id) {
+            if (company.getId() == updatedCompany.getId()) {
                 company.setName(updatedCompany.getName());
-                return company;
             }
         }
-        return null;
     }
+
+    public static List<Company> listAll() {
+        return companies;
+    }
+
 
     public List<Company> listPage(Integer page, Integer size) {
         int fromIndex = (page - 1) * size;
@@ -47,5 +54,9 @@ public class CompanyRepository {
         }
         int toIndex = Math.min(fromIndex + size, companies.size());
         return companies.subList(fromIndex, toIndex);
+    }
+
+    public void clear(){
+        companies.clear();
     }
 }
