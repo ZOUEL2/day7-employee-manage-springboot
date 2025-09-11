@@ -17,8 +17,7 @@ import java.util.Map;
 @Service
 public class EmployeeService {
 
-    @Qualifier("employeeRepositoryDBImpl")
-    @Resource
+    @Resource(name = "employeeRepositoryDBImpl")
     private EmployeeRepository employeeRepository;
 
     public Map<String, Object> create(Employee employee) {
@@ -38,7 +37,7 @@ public class EmployeeService {
             throw new EmployeeSalarySetException(EmployeeExceptionMessage.ILLEGAL_SALARY);
         }
         employeeRepository.insert(employee);
-        return Map.of("id", employee.getId(), "status", employee.isActiveStatus());
+        return Map.of("id", employee.getId(), "activeStatus", employee.isActiveStatus());
     }
 
 
