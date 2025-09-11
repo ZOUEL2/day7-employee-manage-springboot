@@ -1,0 +1,2 @@
+ALTER TABLE t_employee
+    ADD COLUMN active_status BOOLEAN NOT NULL DEFAULT TRUE;
