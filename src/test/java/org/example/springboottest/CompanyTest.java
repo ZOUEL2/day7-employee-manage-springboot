@@ -2,6 +2,7 @@ package org.example.springboottest;
 
 import jakarta.annotation.Resource;
 import org.example.springboottest.repository.CompanyRepository;
+import org.example.springboottest.repository.EmployeeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -10,25 +11,23 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 public class CompanyTest {
 
-    @Resource
+    @Resource(name = "companyRepositoryDBImpl")
     private CompanyRepository companyRepository;
+
+    @Resource
+    private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         companyRepository.clear();
     }
-
-    @Resource
-    private MockMvc mockMvc;
 
     private long createCompany(String name) throws Exception {
         MvcResult result = mockMvc.perform(post("/companies")
@@ -44,19 +43,47 @@ public class CompanyTest {
         return Long.parseLong(content.replaceAll("\\D+", ""));
     }
 
+    private long createEmployee(String name, String gender, int age, double salary, long companyId) throws Exception {
+        MvcResult result = mockMvc.perform(post("/employees")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"%s",
+                                  "gender":"%s",
+                                  "age":%d,
+                                  "salary":%s,
+                                  "companyId":%d
+                                }
+                                """.formatted(name, gender, age, salary, companyId)))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String content = result.getResponse().getContentAsString();
+        return Long.parseLong(content.replaceAll("\\D+", ""));
+    }
+
     @Test
     void should_create_company_when_post_given_a_valid_body() throws Exception {
         long id1 = createCompany("alibaba");
         long id2 = createCompany("tencent");
         assert id1 + 1 == id2;
+    }
 
+    @Test
+    void should_return_company_with_employee() throws Exception {
+        long companyId = createCompany("oocl");
+        createEmployee("Tom", "Male", 18, 8000, companyId);
+
+        mockMvc.perform(get("/companies/{id}", companyId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(companyId))
+                .andExpect(jsonPath("$.employees.length()").value(1))
+                .andExpect(jsonPath("$.employees[0].name").value("Tom"));
     }
 
     @Test
     void should_list_all_companies() throws Exception {
         createCompany("alibaba");
         createCompany("tencent");
-
         mockMvc.perform(get("/companies"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
@@ -64,11 +91,10 @@ public class CompanyTest {
 
     @Test
     public void should_get_company_by_id_success() throws Exception {
-        createCompany("TestCompany");
-
-        mockMvc.perform(get("/companies/1"))
+        long id = createCompany("TestCompany");
+        mockMvc.perform(get("/companies/" + id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.id").value(id))
                 .andExpect(jsonPath("$.name").value("TestCompany"));
     }
 
@@ -83,10 +109,7 @@ public class CompanyTest {
         for (int i = 1; i <= 5; i++) {
             createCompany("Company" + i);
         }
-
-        mockMvc.perform(get("/companies")
-                        .param("page", "2")
-                        .param("size", "2"))
+        mockMvc.perform(get("/companies").param("page", "2").param("size", "2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].name").value("Company3"))
@@ -96,8 +119,7 @@ public class CompanyTest {
     @Test
     void should_update_company_name_when_put_given_a_valid_body() throws Exception {
         long id = createCompany("OldName");
-
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/companies/{id}", id)
+        mockMvc.perform(put("/companies/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -105,7 +127,6 @@ public class CompanyTest {
                                 }
                                 """))
                 .andExpect(status().isNoContent());
-
         mockMvc.perform(get("/companies/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("NewName"));
@@ -114,10 +135,8 @@ public class CompanyTest {
     @Test
     void should_delete_company_when_delete_given_existing_id() throws Exception {
         long id = createCompany("ToBeDeleted");
-
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/companies/{id}", id))
+        mockMvc.perform(delete("/companies/{id}", id))
                 .andExpect(status().isNoContent());
-
         mockMvc.perform(get("/companies/{id}", id))
                 .andExpect(status().isNotFound());
     }
