@@ -1,0 +1,1 @@
+ALTER TABLE t_employee ADD COLUMN department VARCHAR(30);
