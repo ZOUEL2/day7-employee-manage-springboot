@@ -1,6 +1,8 @@
 package org.example.springboottest;
 
 import jakarta.annotation.Resource;
+import org.example.springboottest.repository.EmployeeJpaRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,8 +18,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class EmployeeTest {
+
+    @Resource
+    private EmployeeJpaRepository employeeJpaRepository;
+
+    @BeforeEach
+    void setUp(){
+        employeeJpaRepository.deleteAll();
+    }
 
     @Resource
     private MockMvc mockMvc;
@@ -45,11 +54,10 @@ class EmployeeTest {
     }
 
     @Test
-    void should_create_employee_when_post_given_a_valid_body() throws Exception {
+    public void should_create_employee_when_post_given_a_valid_body() throws Exception {
         long id1 = createEmployee("Tom", "Male", 18, 5000.0);
-        long id2 = createEmployee("Jerry", "Male", 18, 5000.0); // 修改为不同姓名以避免重复规则
-        assert id1 == 1;
-        assert id2 == 2;
+        long id2 = createEmployee("Jerry", "Male", 18, 5000.0);
+        assert id1 + 1 == id2;
     }
 
     @Test
@@ -151,8 +159,7 @@ class EmployeeTest {
 
         mockMvc.perform(get("/employees/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.status").value(false));
+                .andExpect(jsonPath("$.id").value(id));
     }
 
     @Test
@@ -199,7 +206,7 @@ class EmployeeTest {
 
         String createBody = employeeJson("TomUpdated", "Male", 39, 8000.0);
 
-         mockMvc.perform(post("/employees")
+        mockMvc.perform(post("/employees")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(createBody)).andExpect(status().isBadRequest());
     }

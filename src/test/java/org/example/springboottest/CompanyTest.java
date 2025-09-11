@@ -40,7 +40,6 @@ public class CompanyTest {
     void should_create_company_when_post_given_a_valid_body() throws Exception {
         long id1 = createCompany("alibaba");
         long id2 = createCompany("tencent");
-        // 简单断言顺序生成
         assert id1 == 1;
         assert id2 == 2;
     }
@@ -111,7 +110,6 @@ public class CompanyTest {
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/companies/{id}", id))
                 .andExpect(status().isNoContent());
 
-        // 再次查询应为 404
         mockMvc.perform(get("/companies/{id}", id))
                 .andExpect(status().isNotFound());
     }

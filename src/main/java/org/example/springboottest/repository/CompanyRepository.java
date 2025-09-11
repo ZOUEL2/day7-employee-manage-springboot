@@ -15,6 +15,10 @@ public class CompanyRepository {
 
     private final AtomicLong idGenerator = new AtomicLong(0);
 
+    public static List<Company> listAll() {
+        return companies;
+    }
+
     public Map<String, Object> add(Company company) {
         long id = idGenerator.incrementAndGet();
         company.setId(id);
@@ -36,11 +40,7 @@ public class CompanyRepository {
         return null;
     }
 
-    public static List<Company> listAll(){
-        return companies;
-    }
-
-    public List<Company> listPage(Integer page, Integer size){
+    public List<Company> listPage(Integer page, Integer size) {
         int fromIndex = (page - 1) * size;
         if (fromIndex >= companies.size()) {
             return List.of();
