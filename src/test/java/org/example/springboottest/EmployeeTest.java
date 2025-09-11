@@ -2,12 +2,13 @@ package org.example.springboottest;
 
 import jakarta.annotation.Resource;
 import org.example.springboottest.repository.EmployeeJpaRepository;
+import org.example.springboottest.repository.EmployeeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -18,36 +19,52 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 class EmployeeTest {
 
     @Resource
-    private EmployeeJpaRepository employeeJpaRepository;
-
-    @BeforeEach
-    void setUp(){
-        employeeJpaRepository.deleteAll();
-    }
+    private EmployeeRepository employeeRepository;
 
     @Resource
     private MockMvc mockMvc;
 
-    private String employeeJson(String name, String gender, int age, double salary) {
+    private long defaultCompanyId;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        employeeRepository.clear();
+        // 每个用例准备一个公司
+        MvcResult result = mockMvc.perform(post("/companies")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"defaultCo"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String content = result.getResponse().getContentAsString();
+        defaultCompanyId = Long.parseLong(content.replaceAll("\\D+", ""));
+    }
+
+    private String employeeJson(String name, String gender, int age, double salary, long companyId) {
         return """
                 {
                   "name":"%s",
                   "gender":"%s",
                   "age":%d,
-                  "salary":%s
+                  "salary":%s,
+                  "companyId":%d
                 }
-                """.formatted(name, gender, age, salary);
+                """.formatted(name, gender, age, salary, companyId);
     }
 
     private long createEmployee(String name, String gender, int age, double salary) throws Exception {
         MvcResult result = mockMvc.perform(post("/employees")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(employeeJson(name, gender, age, salary)))
+                        .content(employeeJson(name, gender, age, salary, defaultCompanyId)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.status").value(true))
+                .andExpect(jsonPath("$.activeStatus").value(true))
                 .andReturn();
         String content = result.getResponse().getContentAsString();
         return Long.parseLong(content.replaceAll("\\D+", ""));
@@ -66,7 +83,7 @@ class EmployeeTest {
 
         mockMvc.perform(post("/employees")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(employeeJson("Alice", "Female", 26, 30000.0)))
+                        .content(employeeJson("Alice", "Female", 26, 30000.0, defaultCompanyId)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -78,7 +95,8 @@ class EmployeeTest {
                 .andExpect(jsonPath("$.name").value("Tom"))
                 .andExpect(jsonPath("$.age").value(18))
                 .andExpect(jsonPath("$.gender").value("Male"))
-                .andExpect(jsonPath("$.salary").value(5000.0));
+                .andExpect(jsonPath("$.salary").value(5000.0))
+                .andExpect(jsonPath("$.companyId").value((int) defaultCompanyId));
     }
 
     @Test
@@ -92,7 +110,7 @@ class EmployeeTest {
         createEmployee("Tom", "Male", 18, 5000.0);
         createEmployee("Lucy", "Female", 22, 7000.0);
 
-        mockMvc.perform(get("/employees").param("gender", "male"))
+        mockMvc.perform(get("/employees").param("gender", "Male"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].name").value("Tom"));
@@ -111,7 +129,7 @@ class EmployeeTest {
     @Test
     void should_update_employee_when_put_given_existing_id() throws Exception {
         long id = createEmployee("Tom", "Male", 18, 5000.0);
-        String updateBody = employeeJson("TomUpdated", "Male", 19, 8000.0);
+        String updateBody = employeeJson("TomUpdated", "Male", 19, 8000.0, defaultCompanyId);
 
         mockMvc.perform(put("/employees/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -123,7 +141,8 @@ class EmployeeTest {
                 .andExpect(jsonPath("$.id").value(id))
                 .andExpect(jsonPath("$.name").value("TomUpdated"))
                 .andExpect(jsonPath("$.age").value(19))
-                .andExpect(jsonPath("$.salary").value(8000.0));
+                .andExpect(jsonPath("$.salary").value(8000.0))
+                .andExpect(jsonPath("$.companyId").value((int)defaultCompanyId));
     }
 
     @Test
@@ -133,7 +152,7 @@ class EmployeeTest {
         mockMvc.perform(delete("/employees/{id}", id))
                 .andExpect(status().isNoContent());
 
-        String updateBody = employeeJson("CannotUpdate", "Male", 20, 6000.0);
+        String updateBody = employeeJson("CannotUpdate", "Male", 20, 6000.0, defaultCompanyId);
         mockMvc.perform(put("/employees/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updateBody))
@@ -142,7 +161,7 @@ class EmployeeTest {
 
     @Test
     void should_return_404_when_put_given_not_exist_id() throws Exception {
-        String updateBody = employeeJson("Ghost", "Male", 30, 10000.0);
+        String updateBody = employeeJson("Ghost", "Male", 30, 10000.0, defaultCompanyId);
 
         mockMvc.perform(put("/employees/{id}", 999)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -159,7 +178,8 @@ class EmployeeTest {
 
         mockMvc.perform(get("/employees/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id));
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.activeStatus").value(false));
     }
 
     @Test
@@ -203,12 +223,12 @@ class EmployeeTest {
 
     @Test
     void should_return_400_when_create_employee_age_over_30_and_salary_below_20000() throws Exception {
-
-        String createBody = employeeJson("TomUpdated", "Male", 39, 8000.0);
+        String createBody = employeeJson("TomUpdated", "Male", 39, 8000.0, defaultCompanyId);
 
         mockMvc.perform(post("/employees")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(createBody)).andExpect(status().isBadRequest());
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createBody))
+                .andExpect(status().isBadRequest());
     }
 
 }

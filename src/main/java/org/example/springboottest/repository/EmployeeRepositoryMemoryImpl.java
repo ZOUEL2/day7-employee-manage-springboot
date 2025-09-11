@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class EmployeeRepositoryMemoryImpl implements EmployeeRepository {
 
     private final List<Employee> employees = new ArrayList<>();
-
     private final AtomicLong idGenerator = new AtomicLong(0);
 
     @Override
@@ -40,6 +39,8 @@ public class EmployeeRepositoryMemoryImpl implements EmployeeRepository {
                     e.setAge(updatedEmployee.getAge());
                     e.setGender(updatedEmployee.getGender());
                     e.setSalary(updatedEmployee.getSalary());
+                    e.setCompanyId(updatedEmployee.getCompanyId());
+                    e.setActiveStatus(updatedEmployee.isActiveStatus());
                     return null;
                 });
     }
@@ -73,7 +74,7 @@ public class EmployeeRepositoryMemoryImpl implements EmployeeRepository {
     @Override
     public List<Employee> paginateByGender(String gender, Integer page, Integer size) {
         String formatGender = gender.toLowerCase(Locale.ROOT);
-        List filtered = employees.stream()
+        List<Employee> filtered = employees.stream()
                 .filter(e -> formatGender.equals(
                         Optional.ofNullable(e.getGender())
                                 .map(g -> g.toLowerCase(Locale.ROOT))
@@ -85,6 +86,11 @@ public class EmployeeRepositoryMemoryImpl implements EmployeeRepository {
         }
         int toIndex = Math.min(fromIndex + size, filtered.size());
         return filtered.subList(fromIndex, toIndex);
+    }
+
+    @Override
+    public void clear() {
+        employees.clear();
     }
 
 

@@ -50,5 +50,10 @@ public class EmployeeRepositoryDBImpl implements EmployeeRepository {
         return employeeJpaRepository.findByGender(gender, PageRequest.of(page - 1, size));
     }
 
+    @Override
+    public void clear() {
+        employeeJpaRepository.deleteAll();
+    }
+
 
 }

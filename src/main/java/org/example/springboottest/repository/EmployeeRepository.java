@@ -19,4 +19,5 @@ public interface EmployeeRepository {
 
     List<Employee> paginateByGender(String gender, Integer page, Integer size);
 
+    void clear();
 }
